@@ -1,0 +1,10 @@
+librosa
+soundfile
+sounddevice
+pandas
+seaborn
+numpy
+tqdm
+scikit-learn
+flask
+joblib

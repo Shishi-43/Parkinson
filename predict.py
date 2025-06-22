@@ -74,15 +74,14 @@ def features_to_ordered_array(feat_dict):
 
 def predict_parkinsons(audio_file):
     raw_feats = extract_features(audio_file)           # Extract features from audio
-    X         = features_to_ordered_array(raw_feats)   
+    X = features_to_ordered_array(raw_feats)   
     proba = clf.predict_proba(X)[0]                    # [prob_healthy, prob_parkinsons]
     pd_prob = proba[1] * 100                           # Convert to percentage
     
-    print(f"Estimated probability of Parkinson's: {pd_prob:.2f}%")
-    if pd_prob > 50:
-        print("Warning: High probability of Parkinson's disease. Please consult a healthcare professional.")
-    else:
-        print("Low probability of Parkinson's disease. No immediate concern.")
+    message = ("Warning: High probability of Parkinson's disease. Please consult a healthcare professional."
+               if pd_prob > 50 else
+               "Low probability of Parkinson's disease. No immediate concern.")
+    return pd_prob, message
 
 
 # %%
