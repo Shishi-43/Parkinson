@@ -3,7 +3,10 @@ let audioChunks = [];
 
 function startRecording() {
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        
+
+        
         mediaRecorder.start();
         audioChunks = [];
 
@@ -14,11 +17,11 @@ function startRecording() {
         };
 
         mediaRecorder.onstop = () => {
-            const blob = new Blob(audioChunks, { type: 'audio/wav' });
+            const blob = new Blob(audioChunks, { type: 'audio/webm' });
             const audioURL = URL.createObjectURL(blob);
             document.getElementById('player').src = audioURL;
 
-            const file = new File([blob], "recorded.wav", { type: "audio/wav" });
+            const file = new File([blob], "recorded.webm", { type: "audio/webm" });
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
 

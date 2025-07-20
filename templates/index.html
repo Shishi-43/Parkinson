@@ -1,35 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parkinson's Voice Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h2>Upload or Record Audio</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="audio_file" accept=".wav" required>
-        <br><br>
-        <button type="submit">Detect</button>
-    </form>
 
-    <hr>
-    <h2>Record Audio</h2>
-    <!-- Record Button -->
-    <button onclick="startRecording()">🎙️ Start Recording</button>
-    <button onclick="stopRecording()" disabled id="stopBtn">🛑 Stop</button>
-    <br><br>
-    <audio id="player" controls></audio>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-xl">
+        <h1 class="text-2xl font-bold text-center text-indigo-700 mb-6">Parkinson's Voice Detection</h1>
 
-    <form id="recordForm" method="POST" enctype="multipart/form-data" style="display:none;">
-        <input type="hidden" name="from_recording" value="1">
-        <input type="file" id="blob" name="audio_file">
-        <input type="submit" value="Submit Recording">
-    </form>
+        <!-- Upload Form -->
+        <form method="POST" enctype="multipart/form-data" class="space-y-4 mb-6">
+            <label class="block text-gray-700 font-medium">Upload Audio (.wav)</label>
+            <input type="file" name="audio_file" accept=".wav" required class="w-full p-2 border rounded">
 
-    {% if result %}
-        <h3>Result:</h3>
-        <p>{{ result | safe }}</p>
-    {% endif %}
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 w-full">
+                🔍 Detect
+            </button>
+        </form>
+
+        <hr class="my-6">
+
+        <!-- Recording Section -->
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold text-gray-800">Record Audio</h2>
+
+            <div class="flex space-x-4">
+                <button onclick="startRecording()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    🎙️ Start Recording
+                </button>
+                <button onclick="stopRecording()" disabled id="stopBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    🛑 Stop
+                </button>
+            </div>
+
+            <audio id="player" controls class="w-full mt-4"></audio>
+
+            <form id="recordForm" method="POST" enctype="multipart/form-data" style="display:none;" class="space-y-2">
+                <input type="hidden" name="from_recording" value="1">
+                <input type="file" id="blob" name="audio_file" class="hidden">
+                <input type="submit" value="Submit Recording" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
+            </form>
+        </div>
+
+        <!-- Result Display -->
+        {% if result %}
+        <div class="mt-8 bg-gray-100 border border-indigo-300 rounded p-4">
+            <h3 class="text-lg font-bold text-gray-700">Result:</h3>
+            <p class="text-gray-800 mt-2">{{ result | safe }}</p>
+        </div>
+        {% endif %}
+    </div>
 
     <script src="{{ url_for('static', filename='recorder.js') }}"></script>
 </body>
 </html>
+

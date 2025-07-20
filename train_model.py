@@ -53,7 +53,7 @@ def get_label_from_path(path):
 def get_recording_type_from_path(path):
     if 'ReadText' in path:
         return 'ReadText'
-    elif 'SpontaneousDiaglogue' in path:
+    elif 'SpontaneousDialogue' in path:
         return 'Dialogue'
     else:
         return 'Unknown'
@@ -66,7 +66,7 @@ for recording_type in ['ReadText', 'SpontaneousDialogue']:
         folder_path = os.path.join(base_dir, recording_type, category)
         print(f"Processing {folder_path}...")
         
-        for file in tqdm(os.listdir(folder_path)[:5]): # Limit to first 5 files for testing
+        for file in tqdm(os.listdir(folder_path)): # Limit to first 5 files for testing
             if file.endswith('.wav'):
                 file_path = os.path.join(folder_path, file)
                 try:

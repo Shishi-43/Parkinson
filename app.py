@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import os
 import joblib
+import traceback
 from werkzeug.utils import secure_filename
 from predict import predict_parkinsons
 
@@ -27,6 +28,7 @@ def index():
             proba , message = predict_parkinsons(audio_path)
             result = f"Estimated probability of Parkinson's: {proba:.2f}% <br> {message}"
         except Exception as e:
+            print('Traceback:', traceback.format_exc())
             result = f"Error processing audio: {e}"
 
     return render_template("index.html", result=result)

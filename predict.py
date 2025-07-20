@@ -7,6 +7,7 @@ import joblib
 import os
 import tkinter as tk
 from tkinter import filedialog
+from pydub import AudioSegment
 
 # %%
 # Loads the saved model + column order
@@ -14,11 +15,23 @@ bundle = joblib.load('model/parkinsons_rf.joblib')
 clf = bundle['model']
 COLS = bundle['columns']
 
+#%%
+
+def convert_webm_to_wav(webm_path, wav_path):
+    audio = AudioSegment.from_file(webm_path, format='webm')
+    audio.export(wav_path, format='wav')
+
 # %%
 
 def extract_features(audio_path):
     y, sr = librosa.load(audio_path, sr=None)
 
+    if audio_path.endswith(".webm"):
+        wav_path = audio_path.replace(".webm", ".wav")
+        convert_webm_to_wav(audio_path, wav_path)
+        audio_path = wav_path
+
+    y, sr = librosa.load(audio_path, sr = None)
     # Extract features
     features = {
         'zcr': np.mean(librosa.feature.zero_crossing_rate(y)[0]),
