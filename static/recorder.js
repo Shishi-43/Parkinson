@@ -5,8 +5,6 @@ function startRecording() {
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
         
-
-        
         mediaRecorder.start();
         audioChunks = [];
 

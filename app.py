@@ -3,7 +3,8 @@ import os
 import joblib
 import traceback
 from werkzeug.utils import secure_filename
-from predict import predict_parkinsons
+from predict import predict_parkinsons, extract_features
+ 
 
 
 app = Flask(__name__)
