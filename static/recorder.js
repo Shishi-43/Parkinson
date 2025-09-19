@@ -35,3 +35,14 @@ function stopRecording() {
     mediaRecorder.stop();
     document.getElementById("stopBtn").disabled = true;
 }
+
+window.addEventListener("DOMContentLoaded", () => {
+    const forms = document.querySelectorAll("form");
+    const loading = document.getElementById("loading");
+
+    forms.forEach(form => {
+        form.addEventListener("submit", () => {
+            loading.classList.remove("hidden");
+        });
+    });
+});
