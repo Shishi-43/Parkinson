@@ -17,9 +17,20 @@
             <input type="file" name="audio_file" accept=".wav" required class="w-full p-2 border rounded">
 
             <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 w-full">
-                🔍 Detect
+                 Detect
             </button>
         </form>
+ 
+        <!-- Spinner (hidden by default) -->
+        <div id="loading" class="hidden mt-4 flex items-center justify-center space-x-2">
+            <svg class="animate-spin h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" 
+                        stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" 
+                      d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-gray-600">Processing audio... Please wait</span>
+        </div>
 
         <hr class="my-6">
 
@@ -29,10 +40,10 @@
 
             <div class="flex space-x-4">
                 <button onclick="startRecording()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                    🎙️ Start Recording
+                     Start Recording
                 </button>
                 <button onclick="stopRecording()" disabled id="stopBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                    🛑 Stop
+                     Stop
                 </button>
             </div>
 
