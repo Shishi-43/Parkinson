@@ -1,72 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parkinson's Voice Detection</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Parkinson's Detection Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
-    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-xl">
-        <h1 class="text-2xl font-bold text-center text-indigo-700 mb-6">Parkinson's Voice Detection</h1>
+        <style>
+            @keyframes progress-indeterminate {
+            0%   { transform: translateX(-100%); }
+            50%  { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+            }
+            .animate-progress {
+            width: 50%;
+            animation: progress-indeterminate 1.5s infinite;
+            }
+        </style>
+    </head>
+    <body class="bg-gradient-to-br from-blue-50 to-blue-100 h-screen flex overflow-hidden">
 
-        <!-- Upload Form -->
-        <form method="POST" enctype="multipart/form-data" class="space-y-4 mb-6">
-            <label class="block text-gray-700 font-medium">Upload Audio (.wav)</label>
-            <input type="file" name="audio_file" accept=".wav" required class="w-full p-2 border rounded">
+        <!-- Sidebar -->
+        <aside class="w-1/4 bg-white shadow-xl p-6 flex flex-col space-y-6 rounded-r-2xl">
+            <h1 class="text-2xl font-bold text-blue-700 mb-4">PD Detection</h1>
 
-            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 w-full">
-                 Detect
-            </button>
-        </form>
- 
-        <!-- Spinner (hidden by default) -->
-        <div id="loading" class="hidden mt-4 flex items-center justify-center space-x-2">
-            <svg class="animate-spin h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" 
-                        stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" 
-                      d="M4 12a8 8 0 018-8v8H4z"></path>
-            </svg>
-            <span class="text-gray-600">Processing audio... Please wait</span>
-        </div>
-
-        <hr class="my-6">
-
-        <!-- Recording Section -->
-        <div class="space-y-4">
-            <h2 class="text-xl font-semibold text-gray-800">Record Audio</h2>
-
-            <div class="flex space-x-4">
-                <button onclick="startRecording()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                     Start Recording
-                </button>
-                <button onclick="stopRecording()" disabled id="stopBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                     Stop
-                </button>
+            <!-- Upload Widget -->
+            <div class="bg-blue-50 shadow-lg rounded-2xl p-6 flex-1">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3">Upload Audio</h2>
+                <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <input type="file" name="audio_file" accept=".wav" required 
+                        class="w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                    <button id="detectBtn" type="submit" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 w-full shadow-md transition">
+                    Detect
+                    </button>
+                </form>
             </div>
 
-            <audio id="player" controls class="w-full mt-4"></audio>
+            <!-- Recording Widget -->
+            <div class="bg-blue-50 shadow-lg rounded-2xl p-6 flex-1">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3">Record Audio</h2>
+                <div class="flex space-x-2">
+                    <button onclick="startRecording()" 
+                        class="bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600 shadow transition">
+                        Start
+                    </button>
+                    <button onclick="stopRecording()" disabled id="stopBtn" 
+                        class="bg-blue-700 text-white px-4 py-2 rounded-xl hover:bg-blue-800 shadow transition">
+                        Stop
+                    </button>
+                </div>
+                <audio id="player" controls class="w-full mt-3 rounded-lg shadow"></audio>
+                <form id="recordForm" method="POST" enctype="multipart/form-data" style="display:none;" class="space-y-3">
+                    <input type="hidden" name="from_recording" value="1">
+                    <input type="file" id="blob" name="audio_file" class="hidden">
+                    <input type="submit" value="Submit Recording" 
+                        class="bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600 w-full shadow transition">
+                </form>
+            </div>
+        </aside>
 
-            <form id="recordForm" method="POST" enctype="multipart/form-data" style="display:none;" class="space-y-2">
-                <input type="hidden" name="from_recording" value="1">
-                <input type="file" id="blob" name="audio_file" class="hidden">
-                <input type="submit" value="Submit Recording" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
-            </form>
-        </div>
+        <!-- Main Content -->
+        <main class="flex-1 grid grid-rows-2 grid-cols-2 gap-6 p-6 h-full">
+            
+            <!-- Progress Bar Widget -->
+            <div id="loading" class="hidden bg-white shadow-xl rounded-2xl p-6 col-span-2">
+                <div class="relative w-full h-2 bg-blue-200 rounded overflow-hidden">
+                    <div class="h-2 bg-blue-600 animate-progress rounded"></div>
+                </div>
+                <p class="text-center text-gray-700 mt-3">Processing audio... Please wait</p>
+            </div>
 
-        <!-- Result Display -->
-        {% if result %}
-        <div class="mt-8 bg-gray-100 border border-indigo-300 rounded p-4">
-            <h3 class="text-lg font-bold text-gray-700">Result:</h3>
-            <p class="text-gray-800 mt-2">{{ result | safe }}</p>
-        </div>
-        {% endif %}
-    </div>
+            <!-- Result Widget -->
+            {% if result %}
+            <div class="bg-white shadow-xl rounded-2xl p-6 border-l-4 border-blue-600 overflow-auto">
+                <h3 class="text-xl font-semibold text-gray-800">Prediction Result</h3>
+                <p class="text-gray-700 mt-3">{{ result | safe }}</p>
+            </div>
+            {% endif %}
 
-    <script src="{{ url_for('static', filename='recorder.js') }}"></script>
+            <!-- Feature Chart Widget -->
+            {% if chart %}
+            <div class="bg-white shadow-xl rounded-2xl p-6 flex items-center justify-center overflow-hidden">
+                <img src="{{ chart }}" alt="Feature Chart" class="max-h-full max-w-full rounded-xl shadow">
+            </div>
+            {% endif %}
 
-</body>
+            <!-- History Widget -->
+            
+
+            <div class="bg-white shadow-xl rounded-2xl p-6 col-span-2 overflow-y-auto">
+                <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-semibold text-gray-800">Recent Predictions</h2>
+                    <form method="POST" action="/clear_history">
+                        <button type="submit" 
+                                class="bg-red-300 hover:bg-red-600 text-white px-3 py-1 rounded-xl shadow transition">
+                        Clear History
+                        </button>
+                    </form>
+                </div>
+                <div class="max-h-48 overflow-y-auto">
+                    <table class="w-full text-sm border border-gray-200 rounded-xl overflow-hidden">
+                        <thead class="bg-blue-100 text-gray-700">
+                            <tr>
+                            <th class="p-2">Filename</th>
+                            <th class="p-2">Probability (%)</th>
+                            <th class="p-2">Message</th>
+                            <th class="p-2">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if history is not none %}
+                            {% for row in history.itertuples() %}
+                            <tr class="border-t hover:bg-blue-50 transition">
+                                <td class="p-2">{{ row.filename }}</td>
+                                <td class="p-2">{{ "%.2f"|format(row.probability) }}</td>
+                                <td class="p-2">{{ row.message }}</td>
+                                <td class="p-2">{{ row.timestamp }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="p-2 text-center text-gray-500">No predictions yet.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Recorder Script -->
+        <script src="{{ url_for('static', filename='recorder.js') }}"></script>
+
+        <!-- Show loader on form submit -->
+        <script>
+            document.querySelectorAll("form").forEach(form => {
+            form.addEventListener("submit", function() {
+                document.getElementById("loading").classList.remove("hidden");
+                const btn = document.getElementById("detectBtn");
+                if (btn) btn.disabled = true;
+            });
+            });
+        </script>
+    </body>
 </html>
-
