@@ -38,13 +38,22 @@ def index():
 
             # Make prediction
             pred = model.predict(img_array)[0][0]
-            # Confidence threshold logic
+
+            # Confidence thresholds
             if pred >= 0.7:
                 result = f"Parkinson’s Detected — High Confidence ({pred*100:.2f}%)"
+
             elif 0.3 < pred < 0.7:
-                result = f"Uncertain Result — Could be another disorder (Confidence: {pred*100:.2f}%)"
+                # Determine leaning direction
+                leaning = "Parkinson’s" if pred >= 0.5 else "Healthy Control"
+                result = (
+                    f"Uncertain Result — leaning toward {leaning} "
+                    f"(Confidence: {pred*100:.2f}% for Parkinson’s)"
+                )
+
             else:
                 result = f"Healthy Control — High Confidence ({(1-pred)*100:.2f}%)"
+
 
             # Create URL for displaying image
             image_url = url_for('static', filename=f'uploads/{filename}')
