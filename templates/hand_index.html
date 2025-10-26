@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parkinson's Detection - Hand Drawing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <div class="max-w-xl mx-auto mt-10 bg-white shadow-xl rounded-2xl p-8 text-center">
+        <h1 class="text-2xl font-bold mb-4">Upload a Hand-Drawn Spiral or Wave</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="hand_image" accept="image/*" 
+                   class="block w-full mb-4 border rounded p-2" required>
+            <button type="submit" 
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Predict
+            </button>
+        </form>
+
+
+        {% if result %}
+        <div class="mt-4 text-center">
+            {% if 'Parkinson' in result %}
+            <p class="text-blue-600 font-bold text-xl">{{ result }}</p>
+            {% elif 'Uncertain' in result %}
+            <p class="text-yellow-500 font-bold text-xl">{{ result }}</p>
+            {% else %}
+            <p class="text-blue-100 font-bold text-xl">{{ result }}</p>
+            {% endif %}
+            {% if image %}
+            <img src="{{ image }}" alt="Uploaded Drawing" 
+                 class="mt-4 mx-auto rounded-xl shadow-lg w-64">
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>
