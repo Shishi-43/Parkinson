@@ -206,14 +206,26 @@ def features_to_ordered_array(feat_dict):
 
 
 def predict_parkinsons(audio_file):
+    if audio_file.endswith(".webm"):
+        output_path = os.path.splitext(audio_file)[0] + ".wav"
+        convert_webm_to_wav(audio_file, output_path)
+        audio_file = output_path  # use the converted file
+    
     raw_feats = extract_features(audio_file)           # Extract features from audio  
     X = features_to_ordered_array(raw_feats)   
     proba = clf.predict_proba(X)[0]                    # [prob_healthy, prob_parkinsons]
     pd_percent = proba[1] * 100                           # Convert to percentage
     
-    message = ("Warning: High probability of Parkinson's disease. Please consult a healthcare professional."
-               if pd_percent > 50 else
-               "Low probability of Parkinson's disease. No immediate concern.")
+    if pd_percent >= 70:
+        message = f"Warning: High probability of Parkinson's disease. Please consult a healthcare professional Parkinson’s Detected — High Confidence ({pd_percent:.2f}%)"
+    elif 30 < pd_percent < 70:
+        leaning = "Parkinson’s" if pd_percent >= 50 else "Healthy Control"
+        message = (
+            f"Uncertain Result — leaning toward {leaning} "
+            f"(Confidence: {pd_percent:.2f}% for Parkinson’s)"
+        )
+    else:
+        message = f"Low probability of Parkinson's disease. No immediate concern. Healthy Control — High Confidence ({100 - pd_percent:.2f}%)"
     return pd_percent, message, raw_feats
 
 
