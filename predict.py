@@ -12,8 +12,8 @@ import pandas as pd
 import joblib
 import parselmouth
 import os
-import tkinter as tk
-from tkinter import filedialog
+#import tkinter as tk
+#from tkinter import filedialog
 from pydub import AudioSegment
 from scipy.stats import entropy
 from scipy.signal import detrend
@@ -189,19 +189,6 @@ def record_audio(filename='recordings/sample_voice.wav', duration=5, fs=22050):
     sf.write(filename, audio, fs)
     print(f"Saved as {filename}")
     return filename
-
-
-# %%
-# Or upload an existing audio file 
-def upload_audio():
-    root = tk.Tk()
-    root.withdraw()  # Hide GUI window
-    file_path = filedialog.askopenfilename(
-        title="Select an audio file",
-        filetypes=[("WAV files", "*.wav")]
-    )
-    return file_path
-
 
 
 
