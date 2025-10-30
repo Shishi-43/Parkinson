@@ -1,6 +1,11 @@
 #%%
-import sounddevice as sd
-import soundfile as sf
+try:
+    import sounddevice as sd
+    import soundfile as sf
+except OSError:
+    sd = None
+    sf = None
+
 import librosa
 import numpy as np
 import pandas as pd
@@ -174,6 +179,9 @@ def extract_features(audio_path, fmin=60, fmax=400):
 # %%
 # Records audio
 def record_audio(filename='recordings/sample_voice.wav', duration=5, fs=22050):
+    if sd is None:
+        raise RuntimeError("Audio recording is not supported on this server.")
+    
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     print("Recording... Speak now.")
     audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
