@@ -1,10 +1,37 @@
-librosa
-soundfile
+# --- Core web dependencies ---
+Flask
+Werkzeug
+gunicorn
+
+# --- Audio processing ---
 sounddevice
-pandas
-seaborn
+soundfile
+librosa
+pydub
+praat-parselmouth
+
+# --- Data & math ---
 numpy
+pandas
+scipy
 tqdm
+
+# --- Machine learning ---
 scikit-learn
-flask
+xgboost
+lightgbm
+catboost
 joblib
+
+# --- Deep learning ---
+tensorflow
+
+# --- Visualization ---
+matplotlib
+seaborn
+
+# --- GUI (local use only) ---
+tk
+
+# --- Miscellaneous ---
+datetime
