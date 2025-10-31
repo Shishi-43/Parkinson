@@ -110,7 +110,10 @@ def index():
     history = None
     if os.path.exists(HISTORY_FILE):
         history = pd.read_csv(HISTORY_FILE)
-        history = history.iloc[::-1]
+        if history.empty:
+            history = None
+        else:
+            history = history.iloc[::-1]
 
     return render_template(
         "index_combined.html",
