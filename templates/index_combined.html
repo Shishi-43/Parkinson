@@ -3,262 +3,275 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Parkinson's Detection Dashboard</title>
+  <title>Parkinson's Detection — Dashboard</title>
+
+  <!-- Tailwind CDN (easy) -->
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
-    /* tiny helper to keep cards consistent */
-    .card {
-      @apply bg-white rounded-2xl shadow-lg p-6;
+    /* subtle glass effect */
+    .glass {
+      background: rgba(255, 255, 255, 0.70);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+    /* extra subtle accent border */
+    .accent-border {
+      border-left: 4px solid rgba(59,130,246,0.9); /* blue-500 */
+    }
+    /* progress-animation for loading bar */
+    @keyframes progress {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(0%); }
+    }
+    .progress-bar {
+      animation: progress 1.4s linear infinite;
+      background: linear-gradient(90deg, rgba(59,130,246,0.15), rgba(59,130,246,0.35));
     }
   </style>
 </head>
+<body class="bg-gradient-to-br from-sky-50 to-white min-h-screen text-slate-800">
 
-<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
-
-  <div class="flex h-screen">
-
-    <!-- SIDEBAR (always expanded) -->
-    <aside class="w-72 bg-white border-r border-gray-100 p-6 flex flex-col gap-6">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg font-semibold">PD</div>
+  <!-- Top nav (mobile + desktop) -->
+  <header class="w-full py-4 px-4 md:px-8 lg:px-12">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-tr from-blue-500 to-sky-400 flex items-center justify-center shadow-md text-white font-bold">
+          PD
+        </div>
         <div>
-          <h1 class="text-lg font-bold">Parkinson AI</h1>
-          <p class="text-sm text-gray-500">Detection Dashboard</p>
+          <h1 class="text-xl sm:text-2xl font-semibold">Parkinson's Detection</h1>
+          <p class="text-xs sm:text-sm text-slate-500">Voice-based early detection • AI-assisted</p>
         </div>
       </div>
 
-      <!-- Upload Audio -->
-      <div class="card">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">🎵</div>
-            <div>
-              <h3 class="font-semibold">Upload Audio</h3>
-              <p class="text-xs text-gray-500">.wav or .webm</p>
-            </div>
-          </div>
-        </div>
-        <form method="POST" enctype="multipart/form-data" action="/" class="space-y-3">
-          <input type="file" name="audio_file" accept=".wav,.webm" required
-                 class="w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:outline-none">
-          <button type="submit" class="w-full bg-blue-400 text-white py-2 rounded-xl hover:bg-blue-700">Detect</button>
-        </form>
-      </div>
+      <nav class="hidden md:flex items-center space-x-4">
+        <a class="text-sm text-slate-600 hover:text-blue-600" href="#">Home</a>
+        <a class="text-sm text-slate-600 hover:text-blue-600" href="#">About</a>
+        <a class="text-sm text-slate-600 hover:text-blue-600" href="#">Docs</a>
+      </nav>
+    </div>
+  </header>
 
-      <!-- Record Audio -->
-      <div class="card">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">🎙️</div>
-          <div>
-            <h3 class="font-semibold">Record Audio</h3>
-            <p class="text-xs text-gray-500">Record and submit</p>
-          </div>
-        </div>
+  <main class="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pb-12">
+    <!-- hero / control area -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Controls card -->
+      <div class="glass rounded-2xl p-5 shadow-lg accent-border">
+        <h2 class="text-lg font-semibold mb-1">Upload or Record</h2>
+        <p class="text-sm text-slate-600 mb-4">Upload a .wav file or record directly from your browser (works best on Chrome).</p>
 
-        <div class="flex gap-2 mb-3">
-          <button onclick="startRecording()" class="flex-1 bg-blue-500 text-white py-2 rounded-xl">Start</button>
-          <button onclick="stopRecording()" id="stopBtn" disabled class="flex-1 bg-blue-700 text-white py-2 rounded-xl">Stop</button>
-        </div>
+        <!-- recorder controls (JS handles actual recording) -->
+        
+        <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full">
+          <!-- Recording buttons -->
+          <div class="flex gap-2 w-full sm:w-auto">
+            <button id="startBtn" onclick="startRecording()"
+                    class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow">
+              Start
+            </button>
 
-        <audio id="player" controls class="w-full rounded-lg mb-3" type="audio/webm;codecs=opus"></audio>
-
-        <form id="recordForm" method="POST" enctype="multipart/form-data" style="display:none;">
-          <input type="hidden" name="from_recording" value="1" />
-          <input type="file" id="blob" name="audio_file" class="hidden" />
-          <input type="submit" value="Submit Recording" class="w-full bg-blue-500 text-white py-2 rounded-xl" />
-        </form>
-      </div>
-
-      <!-- Hand drawing -->
-      <div class="card">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center">✏️</div>
-          <div>
-            <h3 class="font-semibold">Upload Hand Drawing</h3>
-            <p class="text-xs text-gray-500">spiral / wave (image)</p>
-          </div>
-        </div>
-        <form method="POST" enctype="multipart/form-data" action="/" class="space-y-3">
-          <input type="file" name="hand_image" accept="image/*" required
-                 class="w-full p-2 border rounded-xl focus:ring-2 focus:ring-green-200 focus:outline-none">
-          <button type="submit" class="w-full bg-blue-400 text-white py-2 rounded-xl hover:bg-blue-700">Predict</button>
-        </form>
-      </div>
-
-      <!-- Combined upload -->
-      <div class="card">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">⚙️</div>
-          <div>
-            <h3 class="font-semibold">Upload Both (Combined)</h3>
-            <p class="text-xs text-gray-500">audio + drawing (one submit)</p>
-          </div>
-        </div>
-        <form method="POST" enctype="multipart/form-data" action="/" class="space-y-3">
-          <input type="file" name="audio_file" accept=".wav,.webm" required
-                 class="w-full p-2 border rounded-xl focus:ring-2 focus:ring-purple-200 focus:outline-none">
-          <input type="file" name="hand_image" accept="image/*" required
-                 class="w-full p-2 border rounded-xl focus:ring-2 focus:ring-purple-200 focus:outline-none">
-          <button type="submit" class="w-full bg-blue-400 text-white py-2 rounded-xl hover:bg-blue-700">Predict Combined</button>
-        </form>
-      </div>
-
-      <div class="mt-auto text-xs text-gray-400">
-        <p>• Powered by TensorFlow & XGBoost</p>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 p-8 overflow-auto">
-
-      <!-- Top summary / Combined Decision -->
-      <div class="mb-6">
-        <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-600">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-2xl font-bold">Combined Decision</h2>
-              <p class="text-sm text-gray-500 mt-1">Weighted result from audio & hand-drawn models</p>
-            </div>
-            <div class="text-right">
-              {% if combined_result %}
-                {% if 'Parkinson' in combined_result %}
-                  <div class="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-red-50 text-red-700 font-semibold">{{ combined_result }}</div>
-                {% else %}
-                  <div class="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-green-50 text-green-700 font-semibold">{{ combined_result }}</div>
-                {% endif %}
-              {% else %}
-                <div class="text-sm text-gray-400">No combined result yet — upload both files at once.</div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Two-column grid: Audio | Hand -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <!-- AUDIO CARD -->
-        <section class="card">
-          <div class="flex items-start justify-between">
-            <div>
-              <h3 class="text-lg font-bold">Audio Prediction</h3>
-              <p class="text-sm text-gray-500 mt-1">Upload or record audio (browser recording supported)</p>
-            </div>
-            <div class="text-sm text-gray-400">Model: XGBoost</div>
+            <button id="stopBtn" onclick="stopRecording()" disabled
+                    class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border">
+              Stop
+            </button>
           </div>
 
-          <div class="mt-4">
-            {% if audio_result %}
-              <div class="prose text-gray-800">{{ audio_result | safe }}</div>
-            {% else %}
-              <p class="text-gray-500">No audio result yet.</p>
-            {% endif %}
-          </div>
-
-          {% if audio_chart %}
-            <div class="mt-6 bg-gray-50 p-4 rounded-lg">
-              <h4 class="text-sm font-semibold mb-2">Extracted Features</h4>
-              <img src="{{ audio_chart }}" alt="audio chart" class="w-full object-contain rounded-md">
-            </div>
-          {% endif %}
-        </section>
-
-        <!-- HAND DRAWING CARD -->
-        <section class="card flex flex-col">
-          <div class="flex items-start justify-between">
-            <div>
-              <h3 class="text-lg font-bold">Hand-Drawn Prediction</h3>
-              <p class="text-sm text-gray-500 mt-1">Upload a spiral/wave drawing</p>
-            </div>
-            <div class="text-sm text-gray-400">Model: CNN</div>
-          </div>
-
-          <div class="mt-4 flex-1">
-            {% if hand_result %}
-              <p class="font-medium">
-                {% if 'Parkinson' in hand_result %}
-                  <span class="text-black-600">{{ hand_result }}</span>
-                {% elif 'Uncertain' in hand_result %}
-                  <span class="text-black-500">{{ hand_result }}</span>
-                {% else %}
-                  <span class="text-black-600">{{ hand_result }}</span>
-                {% endif %}
-              </p>
-            {% else %}
-              <p class="text-gray-500">No drawing prediction yet.</p>
-            {% endif %}
-
-            <div class="mt-6 flex items-start gap-6">
-              {% if hand_image %}
-                <img src="{{ hand_image }}" alt="uploaded drawing" class="w-80 max-w-full rounded-lg shadow-sm border">
-              {% else %}
-                <div class="w-80 h-56 bg-gray-50 rounded-lg border flex items-center justify-center text-gray-400">
-                  Drawing preview
-                </div>
-              {% endif %}
-
-            </div>
-          </div>
-        </section>
-
-      </div> <!-- end 2-col grid -->
-
-      <!-- HISTORY (latest 2 entries) -->
-      <div class="mt-6 card">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h4 class="text-lg font-semibold">Recent Audio Predictions</h4>
-            <p class="text-sm text-gray-500">Latest activity (2 entries)</p>
-          </div>
-          <form method="POST" action="/clear_history">
-            <button type="submit" class="bg-red-400 hover:bg-red-600 text-white px-3 py-1 rounded-lg">Clear History</button>
+          <!-- Upload form -->
+          <form id="uploadForm" method="POST" enctype="multipart/form-data"
+                class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <input id="audio_file" name="audio_file" type="file" accept=".wav"
+                  class="w-full sm:w-56 text-sm text-slate-700 border rounded-lg p-2 bg-sky-50 hover:bg-sky-100 focus:ring-2 focus:ring-sky-300" required>
+            <button type="submit"
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-md hover:shadow-lg transition">
+              Upload
+            </button>
           </form>
         </div>
+        
+        <!-- Hidden form for recorded audio -->
+        <form id="recordForm" method="POST" enctype="multipart/form-data" style="display:none;" class="mt-3">
+          <input type="file" id="blob" name="audio_file" hidden>
+          <button type="submit"
+                  class="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 text-white mt-2">
+            Predict Recording
+          </button>
+        </form>
 
-        <div class="divide-y divide-gray-100">
-          {% if history is not none %}
-            {% for row in history.itertuples() %}
-              {% if loop.index0 < 2 %}
-                <div class="py-3 flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-semibold">{{ loop.index }}</div>
-                    <div>
-                      <div class="font-medium">{{ row.filename }}</div>
-                      <div class="text-xs text-gray-500 mt-1">{{ row.timestamp }}</div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="font-medium">{{ "%.2f"|format(row.probability) }}%</div>
-                    <div class="text-xs text-gray-500 mt-1">{{ row.message }}</div>
-                  </div>
+        <!-- Audio preview -->
+        <audio id="player" controls class="mt-3 w-full hidden"></audio>
+
+
+        <!-- submit / detect -->
+        <div class="mt-4">
+          <button id="detectBtn" type="submit" form="uploadForm"
+                  class="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 text-white font-medium shadow">Detect</button>
+        </div>
+
+        <!-- small helper text -->
+        <p class="text-xs text-slate-500 mt-3">Tip: 2-5 seconds of sustained vowel works well for the model.</p>
+      </div>
+
+      <!-- HAND-DRAWN PREDICTION -->
+      <div class="glass rounded-2xl p-5 shadow-lg">
+        <h3 class="text-lg font-semibold mb-3 text-sky-800">Hand-Drawn Prediction</h3>
+        <form method="POST" action="/" enctype="multipart/form-data" class="space-y-3">
+          <input type="file" name="hand_image" accept="image/*" class="block w-full text-sm text-slate-600 border border-sky-100 rounded-md p-2 focus:ring-2 focus:ring-sky-300" required>
+          <button type="submit" class="w-full px-3 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 text-white font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition">
+            Predict Drawing
+          </button>
+        </form>
+
+        {% if hand_result %}
+          <div class="mt-4 p-3 bg-white rounded-lg shadow-sm border border-sky-100">
+            <p class="font-medium {% if 'Parkinson' in hand_result %}text-red-600{% elif 'Uncertain' in hand_result %}text-yellow-600{% else %}text-green-600{% endif %}">
+              {{ hand_result }}
+            </p>
+            {% if hand_image %}
+              <img src="{{ hand_image }}" alt="uploaded" class="mt-3 w-full rounded-md border border-sky-100">
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>              
+
+      <!-- result card -->
+      <div class="glass rounded-2xl p-5 shadow-lg md:col-span-2">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Prediction</h2>
+            <p class="text-sm text-slate-600">Model output and confidence</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-slate-500">Last run:</p>
+            <p class="text-sm font-medium text-slate-700">{{ last_run if last_run is defined else '' }}</p>
+          </div>
+        </div>
+
+        <!-- Large result area -->
+        <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+          <div class="col-span-2">
+            <div class="p-4 rounded-xl bg-white border shadow-sm">
+              <!-- use Jinja placeholder your backend sets -->
+              {% if audio_result %}
+                <div class="text-slate-800">
+                  <p class="text-sm text-slate-600 mb-2">Audio prediction</p>
+                  <div class="text-2xl font-bold text-black-600">{{ audio_result | safe }}</div>
                 </div>
+              {% else %}
+                <div class="text-slate-600">No result yet. Upload or record to get a prediction.</div>
               {% endif %}
-            {% endfor %}
-          {% else %}
-            <div class="py-6 text-center text-gray-400">No history yet.</div>
-          {% endif %}
+            </div>
+
+            <!-- chart -->
+            {% if audio_chart %}
+            <div class="mt-4 p-3 glass rounded-lg">
+              <h3 class="text-sm font-medium text-slate-700 mb-2">Extracted Features</h3>
+              <img src="{{ audio_chart }}" alt="Feature chart" class="w-full h-auto rounded-md shadow-sm">
+            </div>
+            {% endif %}
+          </div>
         </div>
       </div>
 
-    </main>
-  </div>
+      <div class="mt-3 grid grid-cols-1 gap-3">
+        {% if audio_proba is not none %}
+          <div class="text-sm text-slate-600">
+            Audio model confidence:
+            <span class="font-medium text-blue-600">{{ "%.2f"|format(audio_proba|float) }}%</span>
+          </div>
+        {% endif %}
+        {% if hand_proba is not none %}
+          <div class="text-sm text-slate-600">
+            Hand model confidence:
+            <span class="font-medium text-blue-600">{{ "%.2f"|format(hand_proba|float) }}%</span>
+          </div>
+        {% endif %}
+        {% if combined_result %}
+          <div class="mt-4 p-3 bg-white rounded-lg shadow-sm border-l-4 border-sky-500">
+            <div class="text-sm text-slate-600">Combined Decision</div>
+            <div class="text-lg font-bold text-sky-700 mt-1">{{ combined_result }}</div>
+          </div>
+        {% endif %}
+      </div>
 
-  <!-- Recorder script -->
+    </section>
+
+    <!-- secondary section: detailed table, hand-drawn upload -->
+    <section class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- HISTORY (Detailed Logs) -->
+      <div class="glass rounded-2xl p-5 shadow-lg lg:col-span-2">
+        <h3 class="text-lg font-semibold mb-3 text-sky-800">Detailed Results & Logs</h3>
+        <div class="overflow-auto max-h-56 bg-white rounded-lg p-3 border border-sky-100">
+          <table class="w-full text-sm text-slate-700">
+            <thead class="text-xs text-slate-500 uppercase border-b">
+              <tr>
+                <th class="p-2 text-left">Filename</th>
+                <th class="p-2 text-left">Probability</th>
+                <th class="p-2 text-left">Message</th>
+                <th class="p-2 text-left">Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if history %}
+                {% for row in history %}
+                  <tr class="border-t hover:bg-sky-50 transition">
+                    <td class="p-2 max-w-[250px] truncate">{{ row["filename"] }}</td>
+                    <td class="p-2">{{ "%.2f"|format(row["probability"]|float) }}</td>
+                    <td class="p-2">
+                      {% if "Parkinson" in row["message"] %}
+                        <span class="text-black-600 font-medium">{{ row["message"] }}</span>
+                      {% else %}
+                        <span class="text-black-600 font-medium">{{ row["message"] }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="p-2 text-gray-500">{{ row["timestamp"] }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="4" class="p-3 text-slate-500 text-center">No entries yet.</td></tr>
+              {% endif %}
+
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <!-- clear history -->
+          <form method="POST" action="/clear_history" class="mt-3">
+            <button type="submit" class="w-full text-xs py-2 rounded-lg border bg-slate-50 hover:bg-slate-100">Clear history</button>
+          </form>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- footer -->
+    <footer class="mt-10 text-center text-xs text-slate-500">
+      <p>Parkinson’s Detection • Demo • Use responsibly — not a medical diagnosis.</p>
+    </footer>
+  </main>
+
+  <!-- recorder script (keeps your existing functionality) -->
   <script src="{{ url_for('static', filename='recorder.js') }}"></script>
 
-  <!-- small inline helper to ensure forms show loading state -->
+  <!-- small UX niceties -->
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const forms = document.querySelectorAll("form");
-      forms.forEach(form => {
-        form.addEventListener("submit", () => {
-          // optionally disable buttons while submitting
-          const btns = form.querySelectorAll("button,input[type='submit']");
-          btns.forEach(b => b.setAttribute("disabled", "disabled"));
-        });
-      });
-    });
-  </script>
+    // small: attach file input to label click
+    const audioInput = document.getElementById('audio_file');
+    const uploadForm = document.getElementById('uploadForm');
+    const detectBtn = document.getElementById('detectBtn');
 
+    audioInput?.addEventListener('change', () => {
+      // auto-submit when file selected (optional)
+      // uploadForm.submit();
+      // Ensure Detect routes to upload when a file is selected
+      if (detectBtn) detectBtn.setAttribute('form', 'uploadForm');
+    });
+
+    // keep recording buttons in sync if recorder.js toggles them
+    // (recorder.js should enable/disable start/stop appropriately)
+  </script>
 </body>
 </html>
