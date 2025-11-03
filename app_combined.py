@@ -43,56 +43,57 @@ def index():
     audio_proba = hand_proba = None
 
     try:
-        # --- AUDIO UPLOAD OR RECORD ---
-        if "audio_file" in request.files and request.files["audio_file"].filename != "":
-            audio_file = request.files["audio_file"]
-            filename = secure_filename(audio_file.filename)
-            audio_path = os.path.join(UPLOAD_FOLDER, filename)
-            audio_file.save(audio_path)
+        if request.method == "POST":
+            # --- AUDIO UPLOAD OR RECORD ---
+            if "audio_file" in request.files and request.files["audio_file"].filename != "":
+                audio_file = request.files["audio_file"]
+                filename = secure_filename(audio_file.filename)
+                audio_path = os.path.join(UPLOAD_FOLDER, filename)
+                audio_file.save(audio_path)
 
-            # Directly use audio_path — .webm supported by predict_parkinsons
-            proba, message, feats = predict_parkinsons(audio_path)
-            audio_proba = proba
-            audio_result = f"Estimated probability of Parkinson's: {proba:.2f}% <br> {message}"
+                # Directly use audio_path — .webm supported by predict_parkinsons
+                proba, message, feats = predict_parkinsons(audio_path)
+                audio_proba = proba
+                audio_result = f"Estimated probability of Parkinson's: {proba:.2f}% <br> {message}"
 
-            record = pd.DataFrame([{
-                "filename": filename,
-                "probability": proba,
-                "message": message,
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }])
-            if os.path.exists(HISTORY_FILE):
-                record.to_csv(HISTORY_FILE, mode='a', header=False, index=False)
-            else:
-                record.to_csv(HISTORY_FILE, index=False)
+                record = pd.DataFrame([{
+                    "filename": filename,
+                    "probability": proba,
+                    "message": message,
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }])
+                if os.path.exists(HISTORY_FILE):
+                    record.to_csv(HISTORY_FILE, mode='a', header=False, index=False)
+                else:
+                    record.to_csv(HISTORY_FILE, index=False)
 
-            audio_chart = plot_features(feats, f"static/plots/{filename}_features.png")
+                audio_chart = plot_features(feats, f"static/plots/{filename}_features.png")
 
-        # --- HAND-DRAWN IMAGE UPLOAD ---
-        if "hand_image" in request.files and request.files["hand_image"].filename != "":
-            file = request.files["hand_image"]
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
+            # --- HAND-DRAWN IMAGE UPLOAD ---
+            if "hand_image" in request.files and request.files["hand_image"].filename != "":
+                file = request.files["hand_image"]
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(file_path)
 
-            # Prepare and predict
-            img = image.load_img(file_path, target_size=(224, 224))
-            img_array = np.expand_dims(image.img_to_array(img), axis=0) / 255.0
-            hand_pred = hand_model.predict(img_array)[0][0]
-            hand_proba = hand_pred * 100
+                # Prepare and predict
+                img = image.load_img(file_path, target_size=(224, 224))
+                img_array = np.expand_dims(image.img_to_array(img), axis=0) / 255.0
+                hand_pred = hand_model.predict(img_array)[0][0]
+                hand_proba = hand_pred * 100
 
-            if hand_pred >= 0.7:
-                hand_result = f"Parkinson’s Detected — High Confidence ({hand_proba:.2f}%)"
-            elif 0.3 < hand_pred < 0.7:
-                leaning = "Parkinson’s" if hand_pred >= 0.5 else "Healthy Control"
-                hand_result = (
-                    f"Uncertain Result — leaning toward {leaning} "
-                    f"(Confidence: {hand_proba:.2f}% for Parkinson’s)"
-                )
-            else:
-                hand_result = f"Healthy Control — High Confidence ({100 - hand_proba:.2f}%)"
+                if hand_pred >= 0.7:
+                    hand_result = f"Parkinson’s Detected — High Confidence ({hand_proba:.2f}%)"
+                elif 0.3 < hand_pred < 0.7:
+                    leaning = "Parkinson’s" if hand_pred >= 0.5 else "Healthy Control"
+                    hand_result = (
+                        f"Uncertain Result — leaning toward {leaning} "
+                        f"(Confidence: {hand_proba:.2f}% for Parkinson’s)"
+                    )
+                else:
+                    hand_result = f"Healthy Control — High Confidence ({100 - hand_proba:.2f}%)"
 
-            hand_image = url_for('static', filename=f'uploads/{filename}')
+                hand_image = url_for('static', filename=f'uploads/{filename}')
 
         # --- COMBINED DECISION ---
         if audio_proba is not None and hand_proba is not None:
@@ -113,7 +114,7 @@ def index():
         if history.empty:
             history = None
         else:
-            history = history.iloc[::-1]
+            history = history.iloc[::-1].to_dict(orient = "records")
 
     return render_template(
         "index_combined.html",
@@ -122,8 +123,12 @@ def index():
         hand_result=hand_result,
         hand_image=hand_image,
         combined_result=combined_result,
+        audio_proba=audio_proba,
+        hand_proba=hand_proba,
         history=history
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 7860))
+    app.run(host="0.0.0.0", port=port, debug=False)
