@@ -1,19 +1,23 @@
 #%%
+# Optional local-only deps; avoid importing in server runtime
 try:
-    import sounddevice as sd
-    import soundfile as sf
-except OSError:
+    import sounddevice as sd  # noqa: F401
+    import soundfile as sf    # noqa: F401
+except Exception:
     sd = None
     sf = None
-
 import librosa
 import numpy as np
 import pandas as pd
 import joblib
 import parselmouth
 import os
-#import tkinter as tk
-#from tkinter import filedialog
+try:
+    import tkinter as tk  # noqa: F401
+    from tkinter import filedialog  # noqa: F401
+except Exception:
+    tk = None
+    filedialog = None
 from pydub import AudioSegment
 from scipy.stats import entropy
 from scipy.signal import detrend
@@ -179,9 +183,8 @@ def extract_features(audio_path, fmin=60, fmax=400):
 # %%
 # Records audio
 def record_audio(filename='recordings/sample_voice.wav', duration=5, fs=22050):
-    if sd is None:
-        raise RuntimeError("Audio recording is not supported on this server.")
-    
+    if sd is None or sf is None:
+        raise RuntimeError("Local recording requires sounddevice and soundfile; not available in this environment.")
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     print("Recording... Speak now.")
     audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
@@ -189,6 +192,21 @@ def record_audio(filename='recordings/sample_voice.wav', duration=5, fs=22050):
     sf.write(filename, audio, fs)
     print(f"Saved as {filename}")
     return filename
+
+
+# %%
+# Or upload an existing audio file 
+def upload_audio():
+    if tk is None or filedialog is None:
+        raise RuntimeError("GUI upload requires tkinter; not available in this environment.")
+    root = tk.Tk()
+    root.withdraw()  # Hide GUI window
+    file_path = filedialog.askopenfilename(
+        title="Select an audio file",
+        filetypes=[("WAV files", "*.wav")]
+    )
+    return file_path
+
 
 
 
@@ -211,6 +229,7 @@ def predict_parkinsons(audio_file):
     proba = clf.predict_proba(X)[0]                    # [prob_healthy, prob_parkinsons]
     pd_percent = proba[1] * 100                           # Convert to percentage
     
+     # --- Uncertainty logic (same as hand model) ---
     if pd_percent >= 70:
         message = f"Warning: High probability of Parkinson's disease. Please consult a healthcare professional Parkinson’s Detected — High Confidence ({pd_percent:.2f}%)"
     elif 30 < pd_percent < 70:
